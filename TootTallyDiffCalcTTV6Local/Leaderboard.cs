@@ -20,7 +20,8 @@
             public int nice; 
             public int okay; 
             public int meh; 
-            public int nasty; 
+            public int nasty;
+            public float oldtt = 0;
             public float tt;
             public bool is_rated;
             public int song_id;

@@ -28,7 +28,6 @@ namespace TootTallyDiffCalcTTV6Local
         public void OnDeserialize()
         {
             notesArray = new Note[notes.Length + 1];
-            var noteCount = 0;
             notesArray[0] = new Note(0, 0, .015f, 0, 0, 0, false);
             var sortedNotes = notes.OrderBy(x => x[0]).ToArray();
             for (int i = 0; i < sortedNotes.Length; i++)
@@ -37,12 +36,10 @@ namespace TootTallyDiffCalcTTV6Local
                 if (length <= 0)//minLength only applies if the note is less or equal to 0 beats, else it keeps its "lower than minimum" length
                     length = 0.015f;
                 bool isSlider = i + 1 < sortedNotes.Length && IsSlider(sortedNotes[i], sortedNotes[i + 1]);
-                if (i == 0 && !isSlider)
-                    noteCount++;
                 notesArray[i + 1] = new Note(i + 1, BeatToSeconds2(sortedNotes[i][0], tempo), BeatToSeconds2(length, tempo), sortedNotes[i][2], sortedNotes[i][3], sortedNotes[i][4], isSlider);
             }
 
-            this.noteCount = noteCount;
+            noteCount = GetNoteCount();
             CalcScores();
             if (notesArray.Length > 2)
                 songLength = notesArray.Last().position - notesArray[1].position;
@@ -55,6 +52,17 @@ namespace TootTallyDiffCalcTTV6Local
             stopwatch.Stop();
             criteriaCalculationTime = stopwatch.Elapsed;
             notes = null;
+        }
+
+        public int GetNoteCount()
+        {
+            var noteCount = 0;
+            for (int i = 0; i < notes.Length; i++)
+            {
+                while (i + 1 < notes.Length && IsSlider(notes[i], notes[i + 1])) { i++; }
+                noteCount++;
+            }
+            return noteCount;
         }
 
         public static float GetLength(float length) => Math.Clamp(length, .2f, 5f) * 8f + 10f;
@@ -111,6 +119,8 @@ namespace TootTallyDiffCalcTTV6Local
         //public float GetDiffRating(float speed) => performances.GetDiffRating(Math.Clamp(speed, 0.5f, 2f));
 
         public float GetDynamicDiffRating(float speed, int hitCount, string[] modifiers = null) => performances.GetDynamicDiffRating(hitCount, speed, modifiers);
+        public float GetDynamicTTRating(float speed, int hitCount, float multiplier, string[] modifiers = null) => performances.GetDynamicTTRating(hitCount, speed, multiplier, modifiers);
+        public float GetMaxTTRating(float speed, string[] modifiers = null) => performances.GetDynamicTTRating(notesArray.Length, speed, 1, modifiers);
 
         //public float GetLerpedStarRating(float speed) => performances.GetDiffRating(Math.Clamp(speed, 0.5f, 2f));
 
@@ -123,13 +133,78 @@ namespace TootTallyDiffCalcTTV6Local
 
         public void CalculateScoreTT(Leaderboard.ScoreDataFromDB score)
         {
+            if (score.percentage == 0 && score.score != 0)
+                score.percentage = 100f * (score.score / maxScore);
+
             var percent = score.percentage / 100f;
-            score.tt = percent * GetDynamicDiffRating(score.replay_speed, score.GetHitCount, score.modifiers);
+            if (score.oldtt == 0)
+                score.oldtt = score.tt;
+            score.tt = GetDynamicTTRating(score.replay_speed, score.GetHitCount, GetMultiplier(percent, score.modifiers), score.modifiers);
         }
+
+        public static float GetMultiplier(float percent, string[] modifiers = null)
+        {
+            var multDict = (modifiers != null && modifiers.Contains("EZ")) ? accToEZMultDict : accToMultDict;
+            int index;
+            for (index = 1; index < multDict.Count && multDict.Keys.ElementAt(index) > percent; index++) ;
+            var percMax = multDict.Keys.ElementAt(index);
+            var percMin = multDict.Keys.ElementAt(index - 1);
+            var by = (percent - percMin) / (percMax - percMin);
+            var mult = Utils.Lerp(multDict[percMin], multDict[percMax], by);
+            return mult;
+        }
+
+        public static readonly Dictionary<float, float> accToEZMultDict = new Dictionary<float, float>()
+        {
+            { 1f, 1f },//{ 1f, 1f },
+            { .999f, .999f },//{ .999f, .999f },
+            { .996f, .985f },//{ .996f, .98f },
+            { .993f, .98f },//{ .993f, .96f },
+            { .99f, .975f },//{ .99f, .93f },
+            { .985f, .96f },//{ .985f, .9f },
+            { .98f, .94f },//{ .98f, .875f },
+            { .97f, .9f },//{ .97f, .835f },
+            { .96f, .86f },//{ .96f, .8f },
+            { .95f, .82f },//{ .95f, .765f },
+            { .925f, .75f },//{ .925f, .7f },
+            { .9f, .69f },//{ .9f, .645f },
+            { .875f, .64f },//{ .875f, .59f },
+            { .85f, .6f },//{ .85f, .55f },
+            { .8f, .52f },//{ .8f, .55f },
+            { .7f, .39f },//{ .7f, .45f },
+            { .6f, .29f },//{ .6f, .4f },
+            { .5f, .22f },//{ .5f, .35f },
+            { .25f, .1f },//{ .25f, .2f },
+            { 0, 0 },//{ 0, 0 },
+        };
+
+        public static readonly Dictionary<float, float> accToMultDict = new Dictionary<float, float>()
+        {
+            { 1f, 1f },//{ 1f, 1f },
+            { .999f, .98f },//{ .999f, .999f },
+            { .996f, .96f },//{ .996f, .98f },
+            { .993f, .93f },//{ .993f, .96f },
+            { .99f, .9f },//{ .99f, .93f },
+            { .985f, .86f },//{ .985f, .9f },
+            { .98f, .82f },//{ .98f, .875f },
+            { .97f, .78f },//{ .97f, .835f },
+            { .96f, .72f },//{ .96f, .8f },
+            { .95f, .7f },//{ .95f, .765f },
+            { .925f, .63f },//{ .925f, .7f },
+            { .9f, .56f },//{ .9f, .645f },
+            { .875f, .5f },//{ .875f, .59f },
+            { .85f, .44f },//{ .85f, .55f },
+            { .8f, .36f },//{ .8f, .55f },
+            { .7f, .26f },//{ .7f, .45f },
+            { .6f, .2f },//{ .6f, .4f },
+            { .5f, .15f },//{ .5f, .35f },
+            { .25f, .05f },//{ .25f, .2f },
+            { 0, 0 },//{ 0, 0 },
+        };
 
         public static float BeatToSeconds2(float beat, float bpm) => 60f / bpm * beat;
 
-
+        #region Replays
         public static int GetConvertionVersion(ReplayData replay)
         {
             if (replay.version == "0.0.0")
@@ -392,6 +467,7 @@ namespace TootTallyDiffCalcTTV6Local
                 this.acc = acc;
             }
         }
+        #endregion
 
         #region ChartDisplay
         public string GetChartInfoToDisplay(bool showAllSpeed)
@@ -411,7 +487,7 @@ namespace TootTallyDiffCalcTTV6Local
 
         public string GetChartTextAtSpeed(int speedIndex)
         {
-            return $"SPEED: {Utils.GAME_SPEED[speedIndex]:0.00}x rated {GetStarRating(speedIndex):0.0000})\n" +
+            return $"SPEED: {Utils.GAME_SPEED[speedIndex]:0.00}x rated {GetStarRating(Utils.GAME_SPEED[speedIndex]):0.0000} - {GetMaxTTRating(Utils.GAME_SPEED[speedIndex]):0.0000})\n" +
                        $"  aim: {performances.aimAnalyticsArray[speedIndex].perfWeightedAverage:0.0000}\n" +
                        $"  tap: {performances.tapAnalyticsArray[speedIndex].perfWeightedAverage:0.0000}\n" +
                        $"-------------------------------------------------\n";
@@ -419,16 +495,24 @@ namespace TootTallyDiffCalcTTV6Local
         #endregion
 
         #region LeaderboardDisplay
-        public string GetLeaderboardToDisplay()
+        public string GetLeaderboardToDisplay(bool updateLeaderboardTT = false)
         {
-            if (leaderboard == null || leaderboard.results.Count == 0) return GetNoLeaderboardText();
-            var ttOrdered = leaderboard.results.OrderByDescending(s => s.tt).ToArray();
+            if (leaderboard == null || leaderboard.results.Count == 0) return "";//GetNoLeaderboardText();
+            if (updateLeaderboardTT)
+                CalcLeaderboardTT();
+            var ttOrdered = leaderboard.results.OrderByDescending(s => s.tt).Where(FilterScore).ToArray();
+            MainForm.LEADERBOARD_ENTRY_COUNT += ttOrdered.Length;
+            if (ttOrdered.Length == 0) return "";
             string text = GetLeaderboardHeader();
             for (int i = 0; i < ttOrdered.Length; i++)
                 text += GetDisplayScoreLine(ttOrdered[i], i + 1);
             text += $"==========================================================================================================\n";
             return text;
         }
+
+        private bool FilterScore(Leaderboard.ScoreDataFromDB s) =>
+            s.tt >= MainForm.Instance.GetMinTT() &&
+            ((s.modifiers == null || s.modifiers.Contains("") || s.modifiers.Contains("NONE") || s.modifiers.Contains("None")) ? MainForm.GetModifiersToShow.Contains("NONE") : MainForm.GetModifiersToShow.Any(string.Join(",", s.modifiers).Contains));
 
         private string GetNoLeaderboardText() =>
             $"{name} processed in {calculationTime.TotalSeconds}s\n" +
@@ -449,13 +533,14 @@ namespace TootTallyDiffCalcTTV6Local
                 score.percentage,
                 score.grade,
                 score.tt,
-                GetDynamicDiffRating(score.replay_speed, score.GetHitCount, score.modifiers),
+                score.tt - score.oldtt,
+                GetDynamicTTRating(score.replay_speed, score.GetHitCount, 1, score.modifiers),
                 score.modifiers
                 );
 
-        private string FormatLeaderboardScore(int count, string player, int score, float replaySpeed, float percentage, string grade, float tt, float diff, string[] modifiers)
+        private string FormatLeaderboardScore(int count, string player, int score, float replaySpeed, float percentage, string grade, float tt, float ttdiff, float maxtt, string[] modifiers)
         {
-            return String.Format("{0,-4} | {1,-30} | {2, -11} | {3, -8} | {4, -6} | {5, -5} | {6, -10} | {7, 5} | {8, 4} |\n",
+            return String.Format("{0,-4} | {1,-30} | {2, -11} | {3, -8} | {4, -6} | {5, -5} | {6, -10} | {7, -10} | {8, 5} | {9, 4} |\n",
                 $"#{count}",
                 $"{player}",
                 $"{score}",
@@ -463,14 +548,15 @@ namespace TootTallyDiffCalcTTV6Local
                 $"{percentage:0.00}%",
                 $"{grade}",
                 $"{tt:0.00}tt",
-                $"{diff:0.00}",
+                $"{(ttdiff > 0 ? "+" : "")}{ttdiff:0.00}tt",
+                $"{maxtt:0.00}",
                 $"{(modifiers != null ? string.Join(',', modifiers) : "NONE")}"
                 );
         }
 
         private string GetLeaderboardScoreHeader()
         {
-            return String.Format("{0,-4} | {1,-30} | {2, -11} | {3, -8} | {4, -6} | {5, -5} | {6, -10} | {7, 5} | {8, 4} |\n",
+            return String.Format("{0,-4} | {1,-30} | {2, -11} | {3, -8} | {4, -6} | {5, -5} | {6, -10} | {7, -10} | {8, 5} | {9, 4} |\n",
                 $"Rank",
                 $"Name",
                 $"Score",
@@ -479,6 +565,7 @@ namespace TootTallyDiffCalcTTV6Local
                 $"Grade",
                 $"TT",
                 $"Diff",
+                $"MaxTT",
                 $"Mods"
                 );
         }

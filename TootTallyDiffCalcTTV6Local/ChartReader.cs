@@ -1,5 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Security.Cryptography;
+using static TootTallyDiffCalcTTV6Local.Leaderboard;
 
 namespace TootTallyDiffCalcTTV6Local
 {
@@ -74,7 +80,7 @@ namespace TootTallyDiffCalcTTV6Local
             writer.Close();
         }
 
-        public static List<Leaderboard.SongInfoFromDB> GetCachedFileHashes()
+        public static List<SongInfoFromDB> GetCachedFileHashes()
         {
             if (!File.Exists(Program.CACHE_DIRECTORY + "file_hash.txt"))
                 File.Create(Program.CACHE_DIRECTORY + "file_hash.txt").Close();
@@ -83,10 +89,11 @@ namespace TootTallyDiffCalcTTV6Local
             string json = reader.ReadToEnd();
             try
             {
-                return JsonConvert.DeserializeObject<List<Leaderboard.SongInfoFromDB>>(json);
+                return JsonConvert.DeserializeObject<List<SongInfoFromDB>>(json);
             }
             catch (Exception e)
             {
+                Trace.WriteLine($"ERROR - Couldn't load cached files: {e.Message}\n{e.StackTrace}");
                 return null;
             }
             finally
@@ -121,6 +128,49 @@ namespace TootTallyDiffCalcTTV6Local
             StreamWriter writer = new StreamWriter(path);
             writer.WriteLine(json);
             writer.Close();
+        }
+
+        public static void LoadScoresFromCSV(string path, Action<List<ScoreDataFromDB>> callback)
+        {
+            List<ScoreDataFromDB> scoreList;
+            using StreamReader reader = new StreamReader(path);
+            using CsvReader csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
+            csvReader.Context.RegisterClassMap<ScoreMap>();
+            //song_id, name, user_id, username, score, modifiers, letter_grade, speed, replay_id, tt, played on
+            try
+            {
+                scoreList = csvReader.GetRecords<ScoreDataFromDB>().ToList();
+                callback(scoreList);
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine($"ERROR - {path} couldn't be parsed: {e.Message}\n{e.StackTrace}");
+            }
+        }
+
+        public sealed class ScoreMap : ClassMap<ScoreDataFromDB>
+        {
+            public ScoreMap()
+            {
+                Map(m => m.song_id).Name("song_id");
+                Map(m => m.player).Name("username");
+                Map(m => m.score).Name("score");
+                //Map(m => m.modifiers).Name("modifiers");
+                Map(m => m.modifiers).Convert(args =>
+                {
+                    var val = args.Row.GetField("modifiers");
+                    if (string.IsNullOrEmpty(val)) return null;
+                    return val.Split(',');
+                });
+                Map(m => m.grade).Name("letter_grade");
+                Map(m => m.replay_speed).Name("speed");
+                Map(m => m.tt).Name("tt");
+                Map(m => m.perfect).Name("perfects");
+                Map(m => m.nice).Name("nices");
+                Map(m => m.okay).Name("okays");
+                Map(m => m.meh).Name("mehs");
+                Map(m => m.nasty).Name("nasties");
+            }
         }
     }
 }

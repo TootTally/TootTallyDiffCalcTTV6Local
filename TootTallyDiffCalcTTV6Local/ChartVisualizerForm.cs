@@ -19,9 +19,11 @@ namespace TootTallyDiffCalcTTV6Local
     public partial class ChartVisualizerForm : Form
     {
         private Chart _chart;
-        public ChartVisualizerForm(Chart c)
+        private int _speedIndex;
+        public ChartVisualizerForm(Chart c, int speedIndex = 2)
         {
             _chart = c;
+            _speedIndex = speedIndex;
             InitializeComponent();
             this.Text = _chart.shortName;
             ChartVisualizerGraph.Title.Text = _chart.shortName;
@@ -67,7 +69,7 @@ namespace TootTallyDiffCalcTTV6Local
             if (!note.Equals(default(Note)))
             {
                 var index = Array.IndexOf(_chart.notesArray, note);
-                var extraData = _chart.performances.extraDataVectorMatrix[2][index];
+                var extraData = _chart.performances.extraDataVectorMatrix[_speedIndex][index];
                 Trace.WriteLine($"Note {note.position} was found: Start:{note.pitchStart} - Length:{note.length} - End:{note.pitchEnd} - Slide:{note.isSlider}");
                 Trace.WriteLine($"Extra Data ------------------------------------\n" +
                                 $"Distance from prev:{extraData.distanceFromPreviousNote}\n" +
@@ -75,7 +77,10 @@ namespace TootTallyDiffCalcTTV6Local
                                 $"TimeDelt from prev:{extraData.timingFromPreviousNote}\n" +
                                 $"TimeDelt from next:{extraData.timingToNextNote}\n" +
                                 $"Prev note position:{extraData.prevNotePos}\n" +
-                                $"Next note position:{extraData.nextNotePos}");
+                                $"Next note position:{extraData.nextNotePos}\n" +
+                                $"Aim -- Strain: {extraData.aimStrain} - Stamina: {extraData.aimSta} - Endurance: {extraData.aimEnd}\n" +
+                                $"Tap -- Strain: {extraData.tapStrain} - Stamina: {extraData.tapSta} - Endurance: {extraData.tapEnd}\n" +
+                                $"WeightSum: {extraData.weightSum}");
             }
         }
     }
