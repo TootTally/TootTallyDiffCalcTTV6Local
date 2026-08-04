@@ -56,8 +56,8 @@ namespace TootTallyDiffCalcTTV6Local
             MinTTInput.Value = 1000;
 
             StrainMultInput.Value = 315;
-            StaminaMultInput.Value = 255;
-            EnduranceMultInput.Value = 255;
+            StaminaMultInput.Value = 215;
+            EnduranceMultInput.Value = 215;
 
             AimStaminaDivInput.Value = 300;
             AimEnduranceDivInput.Value = 350;
@@ -69,8 +69,8 @@ namespace TootTallyDiffCalcTTV6Local
             HDTapInput.Value = .09m;
             FLAimInput.Value = .12m;
             FLTapInput.Value = .1m;
-            EZAimInput.Value = .5m;
-            EZTapInput.Value = .4m;
+            EZAimInput.Value = .52m;
+            EZTapInput.Value = .3m;
 
             for (int i = 0; i < ModifierCheckboxInput.Items.Count; i++)
             {
