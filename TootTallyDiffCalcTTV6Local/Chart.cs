@@ -180,6 +180,30 @@ namespace TootTallyDiffCalcTTV6Local
 
         public static readonly Dictionary<float, float> accToMultDict = new Dictionary<float, float>()
         {
+            { 1f, 1.9f },
+            { .999f, 1.8f },
+            { .996f, 1.65f },
+            { .993f, 1.5f },
+            { .99f, 1.35f },
+            { .985f, 1.25f },
+            { .98f, 1.15f },
+            { .97f, 1f },
+            { .96f, .9f },
+            { .95f, .8f },
+            { .925f, .7f },
+            { .9f, .625f },
+            { .875f, .565f },
+            { .85f, .52f },
+            { .8f, .45f },
+            { .7f, .33f },
+            { .6f, .25f },
+            { .5f, .2f },
+            { .25f, .125f },
+            { 0, 0 },
+        };
+
+        public static readonly Dictionary<float, float> old_2_accToMultDict = new Dictionary<float, float>()
+        {
             { 1f, 1.5f },
             { .999f, 1.4f },
             { .996f, 1.3f },
@@ -199,54 +223,6 @@ namespace TootTallyDiffCalcTTV6Local
             { .6f, .325f },
             { .5f, .255f },
             { .25f, .11f },
-            { 0, 0 },
-        };
-
-        public static readonly Dictionary<float, float> old_2_accToMultDict = new Dictionary<float, float>()
-        {
-            { 1f, 1.4f },
-            { .999f, 1.3f },
-            { .996f, 1.2f },
-            { .993f, 1.1f },
-            { .99f, 1f },
-            { .985f, .9f },
-            { .98f, .845f },
-            { .97f, .78f },
-            { .96f, .72f },
-            { .95f, .675f },
-            { .925f, .615f },
-            { .9f, .565f },
-            { .875f, .52f },
-            { .85f, .49f },
-            { .8f, .45f },
-            { .7f, .385f },
-            { .6f, .32f },
-            { .5f, .25f },
-            { .25f, .1f },
-            { 0, 0 },
-        };
-
-        public static readonly Dictionary<float, float> old_accToMultDict = new Dictionary<float, float>()
-        {
-            { 1f, 1f },
-            { .999f, .98f },
-            { .996f, .96f },
-            { .993f, .93f },
-            { .99f, .9f },
-            { .985f, .86f },
-            { .98f, .82f },
-            { .97f, .78f },
-            { .96f, .72f },
-            { .95f, .7f },
-            { .925f, .63f },
-            { .9f, .56f },
-            { .875f, .5f },
-            { .85f, .44f },
-            { .8f, .36f },
-            { .7f, .26f },
-            { .6f, .2f },
-            { .5f, .15f },
-            { .25f, .05f },
             { 0, 0 },
         };
 
@@ -560,7 +536,7 @@ namespace TootTallyDiffCalcTTV6Local
 
         private bool FilterScore(Leaderboard.ScoreDataFromDB s) =>
             s.tt >= MainForm.Instance.GetMinTT() &&
-            ((s.modifiers == null || s.modifiers.Contains("") || s.modifiers.Contains("NONE") || s.modifiers.Contains("None")) ? MainForm.GetModifiersToShow.Contains("NONE") : MainForm.GetModifiersToShow.Any(string.Join(",", s.modifiers).Contains));
+            ((s.modifiers == null || s.modifiers.Contains("") || s.modifiers.Contains("NONE") || s.modifiers.Contains("None")) ? MainForm.GetModifiersToHide.Contains("NONE") : !MainForm.GetModifiersToHide.Any(string.Join(",", s.modifiers).Contains));
 
         private string GetNoLeaderboardText() =>
             $"{name} processed in {calculationTime.TotalSeconds}s\n" +

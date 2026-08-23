@@ -55,8 +55,8 @@ namespace TootTallyDiffCalcTTV6Local
         }
 
         public const float AIM_DIV = 6;
-        public const float TAP_DIV = 10;
-        public const float ACC_DIV = 8;
+        public const float TAP_DIV = 14;
+        public const float ACC_DIV = 10;
         public const float MAX_DIST = 5f;
         public const int MAX_NOTE_COUNT = 16;
         public const float CHEESABLE_THRESHOLD = 34.375f;
@@ -85,7 +85,7 @@ namespace TootTallyDiffCalcTTV6Local
                     var slideCount = 0f;
                     var slideVelocity = 0f;
                     var flatLength = 0f;
-                    if (n2Prev.pitchDelta != 0)
+                    if (MathF.Abs(n2Prev.pitchDelta) >= CHEESABLE_THRESHOLD / 10f)
                     {
                         slideCount++;
                         var pitchDelta = MathF.Abs(n2Prev.pitchDelta);
@@ -102,7 +102,7 @@ namespace TootTallyDiffCalcTTV6Local
                         ConvertNote(in _notesArray[j + 1], tempo, newTempo, out n2Next);
 
                         lengthSum += n2Prev.length;
-                        if (n2Prev.pitchDelta != 0)
+                        if (MathF.Abs(n2Prev.pitchDelta) >= CHEESABLE_THRESHOLD / 10f)
                         {
                             slideCount++;
                             var pitchDelta = MathF.Abs(n2Prev.pitchDelta);
@@ -130,13 +130,13 @@ namespace TootTallyDiffCalcTTV6Local
                     var currVelocity = 0f;
                     if (aimDistance != 0)
                     {
-                        currVelocity = (MathF.Sqrt(aimDistance + .02f) * .95f) / MathF.Pow(deltaTime, 1.32f);
+                        currVelocity = (MathF.Sqrt(aimDistance + .02f) * .45f) / MathF.Pow(deltaTime, 1.32f);
                         aimStrain += (currVelocity * weight) / AIM_DIV;
                     }
 
                     //Tap
-                    var baseValue = (MathF.Sqrt(aimDistance) / 20f) + .0475f;
-                    tapStrain += ((baseValue / MathF.Pow(deltaTime, 1.42f)) * weight) / TAP_DIV;
+                    var baseValue = (MathF.Sqrt(aimDistance) / 10f) + .0725f;
+                    tapStrain += ((baseValue / MathF.Pow(deltaTime, 1.36f)) * weight) / TAP_DIV;
                     weightSum += weight;
                 }
 
@@ -314,7 +314,7 @@ namespace TootTallyDiffCalcTTV6Local
 
         public const float AIM_WEIGHT = 1.25f;
         public const float TAP_WEIGHT = 1f;
-        public const float BIAS = .5f;
+        public const float BIAS = .75f;
 
         //public static float[] HDWeights = { MainForm.Instance.GetHDAimMult(), MainForm.Instance.GetHDTapMult() };
         //public static float[] EZWeights = { -MainForm.Instance.GetEZAimMult(), -MainForm.Instance.GetEZTapMult() };
@@ -349,7 +349,10 @@ namespace TootTallyDiffCalcTTV6Local
                     tapPow -= MainForm.Instance.GetEZTapMult();
                 }
                 if (modifiers.Contains("AP"))
+                {
                     aimPow = 0;
+                    tapRating *= .6f;
+                }
                 if (modifiers.Contains("RX"))
                     tapPow = 0;
 
@@ -403,7 +406,10 @@ namespace TootTallyDiffCalcTTV6Local
                 }
 
                 if (modifiers.Contains("AP"))
+                {
                     aimPow = 0;
+                    tapTT *= .6f;
+                }
                 if (modifiers.Contains("RX"))
                     tapPow = 0;
 
@@ -485,6 +491,7 @@ namespace TootTallyDiffCalcTTV6Local
             public float perfSum, perfWeightedAverage;
             public float weightSum;
             public float sumTT;
+            public const float STAR_MULT = 2.5f;
 
             public DataVectorAnalytics(DataVector[] dataVectorList)
             {
@@ -508,7 +515,7 @@ namespace TootTallyDiffCalcTTV6Local
                 for (int i = 0; i < dataVectorList.Length; i++)
                 {
                     var weight = dataVectorList[i].weight / weightSum;
-                    perfSum += (dataVectorList[i].strain + dataVectorList[i].stamina + dataVectorList[i].endurance) * weight;
+                    perfSum += (dataVectorList[i].strain + dataVectorList[i].stamina + dataVectorList[i].endurance) * weight * STAR_MULT;
                     sumTT += CalcStrainTT(dataVectorList[i].strain * weight) + CalcStamTT(dataVectorList[i].stamina * weight) + CalcEnduTT(dataVectorList[i].endurance * weight);
                 }
                 perfWeightedAverage = perfSum;

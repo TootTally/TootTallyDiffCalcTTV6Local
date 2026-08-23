@@ -7,7 +7,7 @@ namespace TootTallyDiffCalcTTV6Local
     {
         private const bool DO_LEADERBOARDS = false;
         private const bool DO_LOCAL_SCORES = true;
-        private const bool DO_DOWNLOADS = true;
+        private const bool DO_DOWNLOADS = false;
         private const int MAX_REQUESTS = 16;
 
         private LoadingForm _currentLoadingForm;
@@ -19,7 +19,7 @@ namespace TootTallyDiffCalcTTV6Local
         private List<Leaderboard.SongInfoFromDB> _cachedFileHashes;
         private List<int> _filteredIDs, _idList;
 
-        public static List<string> GetModifiersToShow;
+        public static List<string> GetModifiersToHide;
         private Chart[] _chartList;
         private State _currentState;
 
@@ -46,7 +46,7 @@ namespace TootTallyDiffCalcTTV6Local
             for (int i = 0; i < WEIGHTS.Length; i++)
                 WEIGHTS[i] = Utils.FastPow(.9f, i);
             Instance ??= this;
-            GetModifiersToShow = new List<string>(4);
+            GetModifiersToHide = new List<string>(4);
             InitializeComponent();
             SetInputDefaultValues();
         }
@@ -55,9 +55,9 @@ namespace TootTallyDiffCalcTTV6Local
         {
             MinTTInput.Value = 1000;
 
-            StrainMultInput.Value = 315;
-            StaminaMultInput.Value = 215;
-            EnduranceMultInput.Value = 215;
+            StrainMultInput.Value = 350;
+            StaminaMultInput.Value = 425;
+            EnduranceMultInput.Value = 425;
 
             AimStaminaDivInput.Value = 300;
             AimEnduranceDivInput.Value = 350;
@@ -69,14 +69,14 @@ namespace TootTallyDiffCalcTTV6Local
             HDTapInput.Value = .09m;
             FLAimInput.Value = .12m;
             FLTapInput.Value = .1m;
-            EZAimInput.Value = .52m;
-            EZTapInput.Value = .3m;
+            EZAimInput.Value = .48m;
+            EZTapInput.Value = .25m;
 
-            for (int i = 0; i < ModifierCheckboxInput.Items.Count; i++)
+            /*for (int i = 0; i < ModifierCheckboxInput.Items.Count; i++)
             {
-                ModifierCheckboxInput.SetItemChecked(i, true);
-                GetModifiersToShow.Add(((Modifiers)i).ToString());
-            }
+                ModifierCheckboxInput.SetItemChecked(i, false);
+                GetModifiersToHide.Add(((Modifiers)i).ToString());
+            }*/
             ModifierCheckboxInput.ItemCheck += OnModifierCheckChange;
             DiffVisualizerButton.Enabled = false;
             ChartVisualizerButton.Enabled = false;
@@ -510,14 +510,14 @@ namespace TootTallyDiffCalcTTV6Local
         private void OnModifierCheckChange(object sender, ItemCheckEventArgs e)
         {
             var modifierString = ((Modifiers)e.Index).ToString();
-            if (e.NewValue == CheckState.Unchecked && GetModifiersToShow.Any(modifierString.Contains))
+            if (e.NewValue == CheckState.Unchecked && GetModifiersToHide.Any(modifierString.Contains))
             {
-                GetModifiersToShow.Remove(modifierString);
+                GetModifiersToHide.Remove(modifierString);
                 OnEventRefreshDisplays(false, true);
             }
-            else if (e.NewValue == CheckState.Checked && !GetModifiersToShow.Any(modifierString.Contains))
+            else if (e.NewValue == CheckState.Checked && !GetModifiersToHide.Any(modifierString.Contains))
             {
-                GetModifiersToShow.Add(modifierString);
+                GetModifiersToHide.Add(modifierString);
                 OnEventRefreshDisplays(false, true);
             }
         }
