@@ -181,6 +181,30 @@ namespace TootTallyDiffCalcTTV6Local
 
         public static readonly Dictionary<float, float> accToMultDict = new Dictionary<float, float>()
         {
+            { 1f, 1.8f },
+            { .999f, 1.7f },
+            { .996f, 1.6f },
+            { .993f, 1.45f },
+            { .99f, 1.3f },
+            { .985f, 1.15f },
+            { .98f, 1.05f },
+            { .97f, .95f },
+            { .96f, .87f },
+            { .95f, .8f },
+            { .925f, .725f },
+            { .9f, .675f },
+            { .875f, .625f },
+            { .85f, .575f },
+            { .8f, .525f },
+            { .7f, .42f },
+            { .6f, .32f },
+            { .5f, .25f },
+            { .25f, .125f },
+            { 0, 0 },
+        };
+
+        public static readonly Dictionary<float, float> old_3_accToMultDict = new Dictionary<float, float>()
+        {
             { 1f, 1.9f },
             { .999f, 1.8f },
             { .996f, 1.65f },

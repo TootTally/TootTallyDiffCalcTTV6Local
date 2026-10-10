@@ -376,11 +376,11 @@ namespace TootTallyDiffCalcTTV6Local
                     tapPow = 0;
                     aimRating *= .55f;
                 }
+                if (modifiers.Contains("RK"))
+                    tapRating *= .1f;
 
                 if (aimPow < 0) aimPow = .01f;
                 if (tapPow < 0) tapPow = .01f;
-
-
 
                 aimRating *= aimPow;
                 tapRating *= tapPow;
@@ -399,6 +399,7 @@ namespace TootTallyDiffCalcTTV6Local
 
         public float GetDynamicTTRating(int hitCount, float gamespeed, float multiplier, string[] modifiers = null)
         {
+            if (modifiers == null || (!modifiers.Contains("EZ") && !modifiers.Contains("AP"))) hitCount = (int)(hitCount * 1.1f);
             var aimTT = GetDynamicAimTT(hitCount, gamespeed);
             var tapTT = GetDynamicTapTT(hitCount, gamespeed);
 
@@ -436,6 +437,8 @@ namespace TootTallyDiffCalcTTV6Local
                     tapPow = 0;
                     aimTT *= .55f;
                 }
+                if (modifiers.Contains("RK"))
+                    tapTT *= .1f;
 
                 if (aimPow < 0) aimPow = .01f;
                 if (tapPow < 0) tapPow = .01f;
@@ -515,7 +518,7 @@ namespace TootTallyDiffCalcTTV6Local
             public float perfSum, perfWeightedAverage;
             public float weightSum;
             public float sumTT;
-            public const float STAR_MULT = 2.5f;
+            public const float STAR_MULT = 3.75f;
 
             public DataVectorAnalytics(DataVector[] dataVectorList)
             {
