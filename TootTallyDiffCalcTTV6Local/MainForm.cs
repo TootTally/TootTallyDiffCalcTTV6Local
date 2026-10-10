@@ -7,7 +7,7 @@ namespace TootTallyDiffCalcTTV6Local
     {
         private const bool DO_LEADERBOARDS = false;
         private const bool DO_LOCAL_SCORES = true;
-        private const bool DO_DOWNLOADS = false;
+        private const bool DO_DOWNLOADS = true;
         private const int MAX_REQUESTS = 16;
 
         private LoadingForm _currentLoadingForm;
@@ -55,9 +55,9 @@ namespace TootTallyDiffCalcTTV6Local
         {
             MinTTInput.Value = 1000;
 
-            StrainMultInput.Value = 350;
-            StaminaMultInput.Value = 425;
-            EnduranceMultInput.Value = 425;
+            StrainMultInput.Value = 850;
+            StaminaMultInput.Value = 375;
+            EnduranceMultInput.Value = 375;
 
             AimStaminaDivInput.Value = 300;
             AimEnduranceDivInput.Value = 350;

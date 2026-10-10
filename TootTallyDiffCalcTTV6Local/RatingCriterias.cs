@@ -67,6 +67,11 @@
                     else if (pitchVelocity >= 2000f)
                         errors.Add(new RatingError(ErrorLevel.Warning, ErrorType.SliderVelocity, i, currentNote.position, pitchVelocity));
                 }
+
+                //Pitch start out of play space
+                if (MathF.Abs(currentNote.pitchStart) > 180d)
+                    errors.Add(new RatingError(ErrorLevel.Error, ErrorType.NoteStartOutOfBound, i, currentNote.position, currentNote.pitchStart));
+
                 if (!currentNote.isSlider)
                 {
                     var noteDistance = nextNote.position - (currentNote.position + currentNote.length);
@@ -88,17 +93,13 @@
                 }
                 else
                 {
-                    //Pitch start out of play space
-                    if (MathF.Abs(currentNote.pitchStart) > 180d)
-                        errors.Add(new RatingError(ErrorLevel.Error, ErrorType.NoteStartOutOfBound, i, currentNote.position, currentNote.pitchStart));
-
                     //Pitch end out of play space
                     if (currentNote.pitchDelta != 0 && MathF.Abs(currentNote.pitchEnd) > 180d)
                         errors.Add(new RatingError(ErrorLevel.Error, ErrorType.NoteEndOutOfBound, i, currentNote.position, currentNote.pitchEnd));
 
                     //If there's 2 flat sliders next to eachother that can be simplified
                     if (currentNote.pitchDelta == 0 && nextNote.pitchDelta == 0)
-                        errors.Add(new RatingError(ErrorLevel.Error, ErrorType.DuplicateSlider, i, currentNote.position, currentNote.position));
+                        errors.Add(new RatingError(ErrorLevel.Notice, ErrorType.DuplicateSlider, i, currentNote.position, currentNote.position));
 
                     //If the current slider's end is not the same pitch as the next slider's start
                     if (currentNote.pitchEnd != nextNote.pitchStart)
